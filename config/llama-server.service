@@ -1,0 +1,22 @@
+[Unit]
+Description=llama.cpp server — Qwen 2.5 14B (ROCm)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mfirdaus
+Group=render
+WorkingDirectory=/opt/llm
+ExecStartPre=/bin/sleep 5
+ExecStart=/opt/llm/llama.cpp/build/bin/llama-server     --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf     --host 0.0.0.0     --port 8080     --n-gpu-layers 99     --tensor-split 12,12     --ctx-size 8192     --threads 6     --batch-size 512     --flash-attn off     --metrics
+Restart=always
+RestartSec=10
+StandardOutput=append:/opt/llm/logs/llama-server.log
+StandardError=append:/opt/llm/logs/llama-server.log
+
+Environment=HIP_VISIBLE_DEVICES=0,1
+Environment=HSA_OVERRIDE_GFX_VERSION=10.3.0
+
+[Install]
+WantedBy=multi-user.target

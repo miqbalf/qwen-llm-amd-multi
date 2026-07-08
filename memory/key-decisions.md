@@ -46,5 +46,24 @@ later when Coolify enters the picture.
 ## 5. ROCm from AMD Official Repo
 
 **Decision:** Install ROCm via AMD's official Ubuntu package repository.
-**Why:** Only source with guaranteed gfx1031 support. Avoids distro packages
-that may lag or lack GPU support for RDNA 2.
+**Why:** Ubuntu 26.04 ships ROCm 7.1.0 but rocBLAS lacks gfx1031 TensileLibrary.
+AMD's ROCm 7.2.4 (rocBLAS 5.2.0) was installed for newer libraries.
+**How to apply:** AMD repo at `https://repo.radeon.com/rocm/apt/7.2.4 noble main`.
+
+## 6. GPU Architecture Targeting: gfx1030 for gfx1031
+
+**Decision:** Build llama.cpp with `-DCMAKE_HIP_ARCHITECTURES=gfx1030` and
+runtime `HSA_OVERRIDE_GFX_VERSION=10.3.0`.
+**Why:** gfx1031 (Navi 22 / RX 6700 XT) is not in ROCm's rocBLAS TensileLibrary.
+gfx1030 (Navi 21) kernels are binary-compatible with gfx1031 (both RDNA 2).
+The override tells ROCm to report the GPU as gfx1030, matching the compiled kernels.
+**Rejected:** Vulkan backend — would work but adds complexity.
+**Rejected:** gfx1030→gfx1031 file copies — rocBLAS loaded kernels but CUBLAS_STATUS_INTERNAL_ERROR.
+**How to apply:** Always build with `-DCMAKE_HIP_ARCHITECTURES=gfx1030` for RX 6700 XT.
+
+## 7. Flash Attention Disabled
+
+**Decision:** Use `--flash-attn off` (explicitly disabled).
+**Why:** Flash attention HIP kernels crash on gfx1030/gfx1031 with
+`GGML_ASSERT(max_blocks_per_sm > 0) failed`. This is a known compatibility
+issue with RDNA 2 GPUs. Standard attention works correctly at acceptable speed.
