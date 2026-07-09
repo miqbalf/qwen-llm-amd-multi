@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Docker build staging (created by scripts/build-docker.sh)
+build-bin/
+rocm-libs/
+rocm-syslibs/

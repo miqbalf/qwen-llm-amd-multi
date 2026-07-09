@@ -1,27 +1,21 @@
 # docker-compose.yml — Qwen LLM on AMD GPUs
 #
-# Local test:
-#   docker compose up -d --build
+# Coolify: deploys pre-built image from ghcr.io
+# Image is built on AMD server via scripts/build-docker.sh
 #
-# Coolify:
-#   Deploy from repo root. Model volume must exist on host.
-#   Uses host network for Tailscale access.
+# Local test (on AMD server):
+#   docker compose up -d
 
 version: "3.8"
 
 services:
   llama-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/miqbalf/qwen-llm-amd:latest
     container_name: qwen-llm-amd
     restart: unless-stopped
 
     # Host network gives direct Tailscale access
     network_mode: host
-    # If not using host mode, expose port:
-    # ports:
-    #   - "8080:8080"
 
     volumes:
       # Model mounted from host (9 GB — too large for image)
@@ -46,16 +40,3 @@ services:
     environment:
       - HIP_VISIBLE_DEVICES=0,1
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
-
-    # Override CMD if needed:
-    # command: >
-    #   --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
-    #   --host 0.0.0.0
-    #   --port 8080
-    #   --n-gpu-layers 99
-    #   --tensor-split 12,12
-    #   --ctx-size 8192
-    #   --threads 6
-    #   --batch-size 512
-    #   --flash-attn off
-    #   --metrics
