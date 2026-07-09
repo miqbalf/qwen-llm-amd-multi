@@ -1,10 +1,10 @@
 # docker-compose.yml — Qwen LLM on AMD GPUs
 #
-# Coolify: deploys pre-built image from ghcr.io
-# Image is built on AMD server via scripts/build-docker.sh
+# Deploy ON the AMD server (where GPUs are):
+#   docker compose pull && docker compose up -d
 #
-# Local test (on AMD server):
-#   docker compose up -d
+# Port 8081 (8080 is used by Coolify proxy).
+# Image built via scripts/build-docker.sh and pushed to ghcr.io.
 
 version: "3.8"
 
@@ -14,29 +14,35 @@ services:
     container_name: qwen-llm-amd
     restart: unless-stopped
 
-    # Host network gives direct Tailscale access
     network_mode: host
 
     volumes:
-      # Model mounted from host (9 GB — too large for image)
       - /opt/llm/models:/opt/llm/models:ro
-      # Persistent logs
       - /opt/llm/logs:/opt/llm/logs
 
-    # GPU passthrough — required for ROCm
     devices:
       - /dev/dri:/dev/dri
       - /dev/kfd:/dev/kfd
 
-    # GPU access groups
     group_add:
-      - video
-      - render
+      - "44"    # video
+      - "991"   # render
 
-    # ROCm needs seccomp unconfined for GPU ioctls
     security_opt:
       - seccomp:unconfined
 
     environment:
       - HIP_VISIBLE_DEVICES=0,1
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
+
+    command: >
+      --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8081
+      --n-gpu-layers 99
+      --tensor-split 12,12
+      --ctx-size 8192
+      --threads 6
+      --batch-size 512
+      --flash-attn off
+      --metrics

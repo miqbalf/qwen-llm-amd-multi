@@ -42,6 +42,10 @@ cp -a \
     "$ROCMLIB/libamd_comgr.so" "$ROCMLIB/libamd_comgr.so.3" "$ROCMLIB/libamd_comgr.so.3.0.0" \
     "$PROJECT_DIR/rocm-libs/" 2>/dev/null || true
 
+# Copy GPU kernel libraries (required for inference)
+cp -a "$ROCMLIB/rocblas" "$PROJECT_DIR/rocm-libs/" 2>/dev/null || true
+cp -a "$ROCMLIB/hipblaslt" "$PROJECT_DIR/rocm-libs/" 2>/dev/null || true
+
 # Ensure symlinks exist in rocm-libs/
 cd "$PROJECT_DIR/rocm-libs"
 [ -f librocblas.so ] || ln -sf librocblas.so.5 librocblas.so

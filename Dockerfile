@@ -33,7 +33,7 @@ ENV HIP_VISIBLE_DEVICES=0,1
 ENV HSA_OVERRIDE_GFX_VERSION=10.3.0
 ENV LD_LIBRARY_PATH=/opt/rocm/lib:/opt/llm/bin
 
-EXPOSE 8080
+EXPOSE 8081
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -sf http://localhost:8080/health || exit 1
@@ -41,7 +41,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 ENTRYPOINT ["/opt/llm/bin/llama-server"]
 CMD ["--model", "/opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf", \
      "--host", "0.0.0.0", \
-     "--port", "8080", \
+     "--port", "8081", \
      "--n-gpu-layers", "99", \
      "--tensor-split", "12,12", \
      "--ctx-size", "8192", \
