@@ -10,7 +10,7 @@ RUN cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sou
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
     build-essential cmake git ca-certificates \
     libcurl4-openssl-dev \
-    hipcc libamdhip64-dev librocblas-dev rocm-cmake rocm-device-libs \
+    hipcc libamdhip64-dev librocblas-dev rocm-cmake rocm-device-libs-21 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/ggerganov/llama.cpp.git /build/llama.cpp
@@ -30,7 +30,7 @@ RUN cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sou
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
     ca-certificates curl \
-    libcurl4 libgomp1 \
+    libcurl4t64 libgomp1 \
     libamdhip64-7 librocblas5 rocm-smi \
     && rm -rf /var/lib/apt/lists/*
 
