@@ -17,7 +17,7 @@ Tested on **2x RX 6700 XT (Navi 22)** with Ubuntu 26.04 LTS.
 
 ```
 ┌──────────────────┐     Tailscale      ┌──────────────────────┐
-│  Hermes AI Agent │ ◄────────────────► │  llama-server :8080  │
+│  Hermes AI Agent │ ◄────────────────► │  llama-server :8081  │
 │  (consumer)      │                    │  Qwen 2.5 14B Q4_K_M │
 └──────────────────┘                    │  2x RX 6700 XT (ROCm)│
                                         └──────────────────────┘
@@ -114,7 +114,7 @@ ExecStartPre=/bin/sleep 5
 ExecStart=/opt/llm/llama.cpp/build/bin/llama-server \
     --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf \
     --host 0.0.0.0 \
-    --port 8080 \
+    --port 8081 \
     --n-gpu-layers 99 \
     --tensor-split 12,12 \
     --ctx-size 8192 \
@@ -163,10 +163,10 @@ sudo systemctl enable --now llama-server
 sudo systemctl status llama-server
 
 # Health endpoint
-curl http://localhost:8080/health
+curl http://localhost:8081/health
 
 # Chat test
-curl http://localhost:8080/v1/chat/completions \
+curl http://localhost:8081/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Say hi"}],"max_tokens":10}'
 
@@ -181,7 +181,106 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up --hostname <your-hostname>
 ```
 
-Hermes AI connects via Tailscale IP: `http://100.x.y.z:8080/v1/chat/completions`
+Hermes AI connects via Tailscale IP: `http://100.x.y.z:8081/v1/chat/completions`
+
+## Step 8: Docker Deployment (Recommended)
+
+The pre-built Docker image includes llama.cpp binaries + ROCm 7.2.4 libraries.
+Build on the AMD server, push to ghcr.io, then deploy via Coolify or docker-compose.
+
+### Build & Push (on AMD server)
+
+```bash
+# 1. Build llama.cpp on the server first (Steps 1-3 above)
+# 2. Run the build script
+cd /path/to/qwen-llm-amd-multi
+./scripts/build-docker.sh
+
+# 3. Push to GitHub Container Registry
+echo $GITHUB_PAT | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+docker push ghcr.io/miqbalf/qwen-llm-amd:latest
+```
+
+The build script copies:
+- `build-bin/` — pre-built llama-server + llama-cli
+- `rocm-libs/` — ROCm 7.2.4 runtime libraries (~6 GB incl. GPU kernels)
+- `rocm-syslibs/` — system ROCm libraries from /usr/lib
+
+### Deploy via docker-compose
+
+```yaml
+# docker-compose.yml
+services:
+  llama-server:
+    image: ghcr.io/miqbalf/qwen-llm-amd:latest
+    container_name: qwen-llm-amd
+    restart: unless-stopped
+    network_mode: host          # needed for Tailscale
+    volumes:
+      - /opt/llm/models:/opt/llm/models:ro
+      - /opt/llm/logs:/opt/llm/logs
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/kfd:/dev/kfd
+    group_add:
+      - "44"    # video
+      - "991"   # render
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - HIP_VISIBLE_DEVICES=0,1
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+    command: >
+      --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8081
+      --n-gpu-layers 99
+      --tensor-split 12,12
+      --ctx-size 8192
+      --threads 6
+      --batch-size 512
+      --flash-attn off
+      --metrics
+```
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+### Deploy via Coolify
+
+Point Coolify at the repo. It pulls the pre-built image from ghcr.io.
+Set the compose file path to `docker-compose.yml`.
+
+**Important:** Port 8081 (8081 is used by Coolify's own Traefik proxy).
+
+### GPU group IDs
+
+Docker cannot resolve group names on all systems. Use numeric GIDs:
+```bash
+getent group video   # usually 44
+getent group render  # usually 991
+```
+
+### rocBLAS / hipblaslt GPU Kernel Libraries
+
+The image must include GPU kernel libraries from the build host:
+- `/opt/rocm/lib/rocblas/library/` (~671 MB) — TensileLibrary kernel files
+- `/opt/rocm/lib/hipblaslt/library/` (~4.5 GB) — hipBLASLt kernel files
+
+Without these, you'll get: `rocBLAS error: Cannot read TensileLibrary.dat: Illegal seek for GPU arch : gfx1030`
+
+## Hermes AI Integration
+
+Set these env vars in Hermes (Coolify → Hermes → Environment):
+
+| Variable | Value |
+|---|---|
+| `TIER_0_MODEL` | `local/qwen2.5-14b` |
+| `LOCAL_BASE_URL` | `http://100.106.139.126:8081/v1` |
+| `LOCAL_API_KEY` | `not-needed` |
+
+The `local/` prefix routes to LocalProvider (OpenAI-compatible, 300s timeout, no auth).
 
 ## Performance
 
