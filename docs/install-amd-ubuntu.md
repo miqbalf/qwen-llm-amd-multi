@@ -277,7 +277,7 @@ Set these env vars in Hermes (Coolify → Hermes → Environment):
 | Variable | Value |
 |---|---|
 | `TIER_0_MODEL` | `local/qwen2.5-14b` |
-| `LOCAL_BASE_URL` | `http://100.106.139.126:8081/v1` |
+| `LOCAL_BASE_URL` | `http://<your-tailscale-ip>:8081/v1` |
 | `LOCAL_API_KEY` | `not-needed` |
 
 The `local/` prefix routes to LocalProvider (OpenAI-compatible, 300s timeout, no auth).

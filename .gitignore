@@ -221,3 +221,6 @@ __marimo__/
 build-bin/
 rocm-libs/
 rocm-syslibs/
+
+# Claude Code project memory (may contain local IPs/paths)
+memory/
