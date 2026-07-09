@@ -1,25 +1,12 @@
 # Qwen LLM AMD — Dockerfile for Coolify deployment
-# Build: docker build -t qwen-llm-amd:latest -f docker/Dockerfile .
-#
-# Model is mounted at runtime (9 GB — too large for image layers).
-# Run: see docker-compose.yml
+# Uses Ubuntu 26.04 native ROCm 7.1.0 packages (no external repos)
 
 FROM ubuntu:26.04 AS builder
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
-    build-essential cmake git ca-certificates gnupg wget \
+    build-essential cmake git ca-certificates \
     libcurl4-openssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# AMD ROCm repo
-RUN wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | \
-    gpg --dearmor -o /etc/apt/trusted.gpg.d/rocm.gpg && \
-    echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/7.2.4 noble main' \
-    > /etc/apt/sources.list.d/amdgpu.list
-
-RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
-    rocm-hip-libraries rocm-hip-runtime rocm-core rocm-device-libs \
-    rocblas rocblas-dev hipcc rocm-cmake \
+    rocm-dev hipcc libamdhip64-dev librocblas-dev rocm-cmake rocm-device-libs \
     && rm -rf /var/lib/apt/lists/*
 
 # Build llama.cpp with HIP targeting gfx1030
@@ -36,33 +23,20 @@ RUN mkdir build && cd build && \
 FROM ubuntu:26.04
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
-    ca-certificates wget gnupg \
+    ca-certificates curl \
     libcurl4 libgomp1 \
+    libamdhip64-7 librocblas5 rocm-smi \
     && rm -rf /var/lib/apt/lists/*
 
-# AMD ROCm runtime (no dev packages)
-RUN wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | \
-    gpg --dearmor -o /etc/apt/trusted.gpg.d/rocm.gpg && \
-    echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/7.2.4 noble main' \
-    > /etc/apt/sources.list.d/amdgpu.list
-
-RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
-    rocm-hip-runtime rocm-core rocblas rocm-smi \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy compiled binary
 COPY --from=builder /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
 
-# Directories
 RUN mkdir -p /opt/llm/models /opt/llm/logs
 
-# ROCm environment
 ENV HIP_VISIBLE_DEVICES=0,1
 ENV HSA_OVERRIDE_GFX_VERSION=10.3.0
 
 EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -sf http://localhost:8080/health || exit 1
 
