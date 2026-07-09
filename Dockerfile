@@ -1,15 +1,18 @@
 # Qwen LLM AMD — Dockerfile for Coolify deployment
-# Uses Ubuntu 26.04 native ROCm 7.1.0 packages (no external repos)
+# Ubuntu 26.04 native ROCm packages from universe repo
 
 FROM ubuntu:26.04 AS builder
+
+# Enable universe repo (Docker ubuntu image has restricted sources)
+RUN cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak && \
+    sed -i 's/Components: main restricted/Components: main restricted universe multiverse/g' /etc/apt/sources.list.d/ubuntu.sources
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
     build-essential cmake git ca-certificates \
     libcurl4-openssl-dev \
-    rocm-dev hipcc libamdhip64-dev librocblas-dev rocm-cmake rocm-device-libs \
+    hipcc libamdhip64-dev librocblas-dev rocm-cmake rocm-device-libs \
     && rm -rf /var/lib/apt/lists/*
 
-# Build llama.cpp with HIP targeting gfx1030
 RUN git clone --depth 1 https://github.com/ggerganov/llama.cpp.git /build/llama.cpp
 WORKDIR /build/llama.cpp
 RUN mkdir build && cd build && \
@@ -21,6 +24,9 @@ RUN mkdir build && cd build && \
 
 # --- Runtime stage ---
 FROM ubuntu:26.04
+
+RUN cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak && \
+    sed -i 's/Components: main restricted/Components: main restricted universe multiverse/g' /etc/apt/sources.list.d/ubuntu.sources
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
     ca-certificates curl \
