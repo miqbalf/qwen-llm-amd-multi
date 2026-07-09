@@ -19,7 +19,7 @@ Hermes AI (other server) ──Tailscale──▶ llama-server :8080 (this serve
 
 ## Server
 
-- **Host:** 192.168.1.12 (LAN), Tailscale node for stable addressing
+- **Host:** <server-lan-ip> (LAN), Tailscale node for stable addressing
 - **OS:** Ubuntu 26.04 LTS (Resolute Raccoon), kernel 7.0.0-27
 - **User:** mfirdaus (SSH key auth), sudo-capable
 - **GPU driver:** amdgpu (kernel), ROCm 6.x (userspace)
@@ -43,7 +43,7 @@ See `memory/key-decisions.md` for rationale on each.
 3. SSH to server to verify current state matches memory
 
 ### Making Server Changes
-1. SSH: `ssh mfirdaus@192.168.1.12` (key auth, no password)
+1. SSH: `ssh mfirdaus@<server-lan-ip>` (key auth, no password)
 2. Root: `sudo -i` (password required — key auth configured in Task 4)
 3. GPU status: `rocm-smi` or `watch -n1 rocm-smi`
 4. Service: `sudo systemctl status llama-server`

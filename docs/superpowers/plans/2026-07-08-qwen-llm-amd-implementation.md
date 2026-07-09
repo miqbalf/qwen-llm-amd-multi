@@ -61,7 +61,7 @@ qwen-llm-amd-multi/
 └── README.md                          # Already exists, update with project info
 ```
 
-### Server-side (on 192.168.1.12, not in git)
+### Server-side (on <server-lan-ip>, not in git)
 ```
 /opt/llm/
 ├── models/                            # GGUF model files
@@ -115,7 +115,7 @@ Hermes AI (other server) ──Tailscale──▶ llama-server :8080 (this serve
 
 ## Server
 
-- **Host:** 192.168.1.12 (LAN), Tailscale node for stable addressing
+- **Host:** <server-lan-ip> (LAN), Tailscale node for stable addressing
 - **OS:** Ubuntu 26.04 LTS (Resolute Raccoon), kernel 7.0
 - **User:** mfirdaus (SSH key auth), sudo-capable
 - **GPU driver:** amdgpu (kernel), ROCm 6.x (userspace)
@@ -139,7 +139,7 @@ See `memory/key-decisions.md` for rationale on each.
 3. SSH to server to verify current state matches memory
 
 ### Making Server Changes
-1. SSH: `ssh mfirdaus@192.168.1.12` (key auth, no password)
+1. SSH: `ssh mfirdaus@<server-lan-ip>` (key auth, no password)
 2. Root: `sudo -i` (requires password — set up key auth per task 2)
 3. GPU status: `rocm-smi` or `watch -n1 rocm-smi`
 4. Service: `sudo systemctl status llama-server`
@@ -216,7 +216,7 @@ metadata:
 | Storage | 114 GB SSD, 97 GB free on / |
 | OS | Ubuntu 26.04 LTS (Resolute Raccoon) |
 | Kernel | 7.0.0-27-generic |
-| Network | LAN 192.168.1.12, 1 GbE |
+| Network | LAN <server-lan-ip>, 1 GbE |
 
 ## PCI Topology
 
@@ -307,7 +307,7 @@ metadata:
 
 ## 2026-07-08 — Initial Setup
 
-- **SSH verified:** Key auth working to mfirdaus@192.168.1.12
+- **SSH verified:** Key auth working to mfirdaus@<server-lan-ip>
 - **Hardware discovered:** 2x RX 6700 XT (not 5700XT as originally thought)
 - **OS:** Ubuntu 26.04 LTS, kernel 7.0.0-27
 - **State:** Clean server, no ROCm, no Tailscale, no Docker
@@ -340,7 +340,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 SSH to server and run:
 ```bash
-ssh mfirdaus@192.168.1.12
+ssh mfirdaus@<server-lan-ip>
 git config --global user.name "M Iqbal Firdaus"
 git config --global user.email "mfirdaus@example.com"
 git config --global init.defaultBranch main
@@ -354,7 +354,7 @@ After pushing tasks 1-2 locally:
 git push origin main
 
 # Server — pull changes
-ssh mfirdaus@192.168.1.12 "cd ~/qwen-llm-amd-multi && git pull origin main"
+ssh mfirdaus@<server-lan-ip> "cd ~/qwen-llm-amd-multi && git pull origin main"
 ```
 
 Expected: Server repo shows AGENTS.md and memory/ directory.
@@ -373,12 +373,12 @@ No commit needed — server git config is outside repo scope. Log this in next s
 
 **Interfaces:**
 - Consumes: mfirdaus has SSH key at `~/.ssh/id_ed25519.pub`
-- Produces: `ssh root@192.168.1.12` works without password
+- Produces: `ssh root@<server-lan-ip>` works without password
 
 - [ ] **Step 1: Copy SSH key to root authorized_keys**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "cat ~/.ssh/id_ed25519.pub | sudo tee -a /root/.ssh/authorized_keys && sudo chmod 600 /root/.ssh/authorized_keys && sudo chmod 700 /root/.ssh"
+ssh mfirdaus@<server-lan-ip> "cat ~/.ssh/id_ed25519.pub | sudo tee -a /root/.ssh/authorized_keys && sudo chmod 600 /root/.ssh/authorized_keys && sudo chmod 700 /root/.ssh"
 ```
 
 Expected: No errors. Key appended to root's authorized_keys.
@@ -386,7 +386,7 @@ Expected: No errors. Key appended to root's authorized_keys.
 - [ ] **Step 2: Test root SSH**
 
 ```bash
-ssh -o ConnectTimeout=5 root@192.168.1.12 "echo 'Root SSH key auth: SUCCESS' && hostname"
+ssh -o ConnectTimeout=5 root@<server-lan-ip> "echo 'Root SSH key auth: SUCCESS' && hostname"
 ```
 
 Expected: "Root SSH key auth: SUCCESS" and "udinpc".
@@ -395,7 +395,7 @@ Expected: "Root SSH key auth: SUCCESS" and "udinpc".
 
 Add entry to `memory/session-log.md`:
 ```markdown
-- **Root SSH:** Key auth configured for root@192.168.1.12. Verified working.
+- **Root SSH:** Key auth configured for root@<server-lan-ip>. Verified working.
 ```
 
 - [ ] **Step 4: Commit**
@@ -424,12 +424,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 AMD's ROCm repo may not yet have a named Ubuntu 26.04 release. We check and adapt:
 
 ```bash
-ssh root@192.168.1.12 "apt update && apt-cache search rocm 2>/dev/null | head -20 || echo 'No ROCm in default repos'"
+ssh root@<server-lan-ip> "apt update && apt-cache search rocm 2>/dev/null | head -20 || echo 'No ROCm in default repos'"
 ```
 
 If not in default repos, check AMD's official repo structure:
 ```bash
-ssh root@192.168.1.12 "curl -s https://repo.radeon.com/rocm/apt/ | grep -o 'href=\"[0-9].*/\"' | sort -V | tail -5"
+ssh root@<server-lan-ip> "curl -s https://repo.radeon.com/rocm/apt/ | grep -o 'href=\"[0-9].*/\"' | sort -V | tail -5"
 ```
 
 - [ ] **Step 2: Install via AMD official repo**
@@ -437,7 +437,7 @@ ssh root@192.168.1.12 "curl -s https://repo.radeon.com/rocm/apt/ | grep -o 'href
 Use the Ubuntu 24.04 repo as fallback if 26.04 isn't listed yet (26.04 just released):
 
 ```bash
-ssh root@192.168.1.12 << 'ROCM_SETUP'
+ssh root@<server-lan-ip> << 'ROCM_SETUP'
 # Add AMD ROCm repository
 apt update && apt install -y wget gnupg
 
@@ -470,7 +470,7 @@ ROCM_SETUP
 - [ ] **Step 3: Verify ROCm installation**
 
 ```bash
-ssh root@192.168.1.12 "rocminfo 2>&1 | head -40 && echo '---' && rocm-smi 2>&1"
+ssh root@<server-lan-ip> "rocminfo 2>&1 | head -40 && echo '---' && rocm-smi 2>&1"
 ```
 
 Expected output: `rocminfo` lists 2 agents (GPUs) with gfx1031. `rocm-smi` shows both GPUs with VRAM, temperature, and power.
@@ -484,7 +484,7 @@ Agent 2 — Name: gfx1031
 - [ ] **Step 4: Verify HIP runtime**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "hipconfig --full 2>&1 || echo 'hipconfig not found — trying /opt/rocm/bin/hipconfig' && /opt/rocm/bin/hipconfig --full 2>&1"
+ssh mfirdaus@<server-lan-ip> "hipconfig --full 2>&1 || echo 'hipconfig not found — trying /opt/rocm/bin/hipconfig' && /opt/rocm/bin/hipconfig --full 2>&1"
 ```
 
 Expected: HIP version, ROCm path, GPU targets including gfx1031.
@@ -492,12 +492,12 @@ Expected: HIP version, ROCm path, GPU targets including gfx1031.
 - [ ] **Step 5: Reboot to load ROCm kernel modules**
 
 ```bash
-ssh root@192.168.1.12 "reboot"
+ssh root@<server-lan-ip> "reboot"
 ```
 
 Wait 30 seconds, then verify:
 ```bash
-sleep 30 && ssh mfirdaus@192.168.1.12 "lsmod | grep kfd && rocm-smi"
+sleep 30 && ssh mfirdaus@<server-lan-ip> "lsmod | grep kfd && rocm-smi"
 ```
 
 Expected: `amdgpu` and `kfd` modules loaded. `rocm-smi` shows both GPUs.
@@ -535,7 +535,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - [ ] **Step 1: Install Tailscale**
 
 ```bash
-ssh root@192.168.1.12 "curl -fsSL https://tailscale.com/install.sh | sh"
+ssh root@<server-lan-ip> "curl -fsSL https://tailscale.com/install.sh | sh"
 ```
 
 Expected: Tailscale installed, tailscaled service running.
@@ -543,14 +543,14 @@ Expected: Tailscale installed, tailscaled service running.
 - [ ] **Step 2: Authenticate to Tailnet**
 
 ```bash
-ssh root@192.168.1.12 "tailscale up"
+ssh root@<server-lan-ip> "tailscale up"
 ```
 
 Expected: Prints a URL. You (mfirdaus) need to open it in a browser to authenticate.
 **Note:** For headless servers, use an auth key from Tailscale admin console:
 ```bash
 # Alternative: pre-auth key (no browser needed)
-ssh root@192.168.1.12 "tailscale up --authkey tskey-... --hostname udinpc-amd-llm"
+ssh root@<server-lan-ip> "tailscale up --authkey tskey-... --hostname udinpc-amd-llm"
 ```
 The auth key should be generated at https://login.tailscale.com/admin/settings/keys.
 **Do not commit the auth key to git.**
@@ -558,7 +558,7 @@ The auth key should be generated at https://login.tailscale.com/admin/settings/k
 - [ ] **Step 3: Verify Tailscale**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "tailscale status && echo '---' && tailscale ip -4"
+ssh mfirdaus@<server-lan-ip> "tailscale status && echo '---' && tailscale ip -4"
 ```
 
 Expected: Shows the node with its Tailnet IP (100.x.y.z). Note this IP.
@@ -595,25 +595,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - [ ] **Step 1: Install build dependencies**
 
 ```bash
-ssh root@192.168.1.12 "apt install -y build-essential cmake git libgomp1 libcurl4-openssl-dev"
+ssh root@<server-lan-ip> "apt install -y build-essential cmake git libgomp1 libcurl4-openssl-dev"
 ```
 
 - [ ] **Step 2: Create directory structure**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "mkdir -p /opt/llm/models /opt/llm/logs"
+ssh mfirdaus@<server-lan-ip> "mkdir -p /opt/llm/models /opt/llm/logs"
 ```
 
 - [ ] **Step 3: Clone llama.cpp**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "git clone https://github.com/ggerganov/llama.cpp.git /opt/llm/llama.cpp"
+ssh mfirdaus@<server-lan-ip> "git clone https://github.com/ggerganov/llama.cpp.git /opt/llm/llama.cpp"
 ```
 
 - [ ] **Step 4: Build with HIPBLAS**
 
 ```bash
-ssh mfirdaus@192.168.1.12 << 'BUILD'
+ssh mfirdaus@<server-lan-ip> << 'BUILD'
 cd /opt/llm/llama.cpp
 mkdir -p build && cd build
 
@@ -650,7 +650,7 @@ cmake .. \
 - [ ] **Step 5: Verify the binary**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "/opt/llm/llama.cpp/build/bin/llama-server --help 2>&1 | head -20"
+ssh mfirdaus@<server-lan-ip> "/opt/llm/llama.cpp/build/bin/llama-server --help 2>&1 | head -20"
 ```
 
 Expected: Help text listing flags including `--tensor-split`, `--n-gpu-layers`, etc.
@@ -688,7 +688,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 Use huggingface-cli or direct download from HuggingFace. The standard source for quality GGUFs is bartowski on HuggingFace:
 
 ```bash
-ssh mfirdaus@192.168.1.12 << 'DOWNLOAD'
+ssh mfirdaus@<server-lan-ip> << 'DOWNLOAD'
 cd /opt/llm/models
 
 # Install huggingface-hub CLI
@@ -719,7 +719,7 @@ wget -O /opt/llm/models/qwen2.5-14b-instruct-q4_k_m.gguf \
 - [ ] **Step 2: Verify the model file**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "ls -lh /opt/llm/models/ && file /opt/llm/models/*.gguf"
+ssh mfirdaus@<server-lan-ip> "ls -lh /opt/llm/models/ && file /opt/llm/models/*.gguf"
 ```
 
 Expected: GGUF file, ~8.5 GB.
@@ -757,16 +757,16 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - [ ] **Step 1: Determine Tailscale IP**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "tailscale ip -4"
+ssh mfirdaus@<server-lan-ip> "tailscale ip -4"
 ```
 
-Note the Tailscale IP (e.g., `100.95.142.51`). We'll use this in the service file.
+Note the Tailscale IP (e.g., `<your-tailscale-ip>`). We'll use this in the service file.
 
 - [ ] **Step 2: Create systemd service file**
 
 Write on server:
 ```bash
-ssh root@192.168.1.12 "cat > /etc/systemd/system/llama-server.service << 'EOF'
+ssh root@<server-lan-ip> "cat > /etc/systemd/system/llama-server.service << 'EOF'
 [Unit]
 Description=llama.cpp server — Qwen 2.5 14B (ROCm)
 After=network-online.target tailscaled.service
@@ -817,19 +817,19 @@ EOF"
 
 ```bash
 # Read from server and save locally
-ssh root@192.168.1.12 "cat /etc/systemd/system/llama-server.service" > /Volumes/DATA_SSD/Github/qwen-llm-amd-multi/config/llama-server.service
+ssh root@<server-lan-ip> "cat /etc/systemd/system/llama-server.service" > /Volumes/DATA_SSD/Github/qwen-llm-amd-multi/config/llama-server.service
 ```
 
 - [ ] **Step 4: Enable and start the service**
 
 ```bash
-ssh root@192.168.1.12 "systemctl daemon-reload && systemctl enable llama-server && systemctl start llama-server"
+ssh root@<server-lan-ip> "systemctl daemon-reload && systemctl enable llama-server && systemctl start llama-server"
 ```
 
 - [ ] **Step 5: Check service status**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "systemctl status llama-server --no-pager -l && echo '---' && tail -30 /opt/llm/logs/llama-server.log"
+ssh mfirdaus@<server-lan-ip> "systemctl status llama-server --no-pager -l && echo '---' && tail -30 /opt/llm/logs/llama-server.log"
 ```
 
 Expected: Service active (running). Logs show model loaded, server listening.
@@ -845,7 +845,7 @@ llama_server: listening on http://0.0.0.0:8080
 - [ ] **Step 6: Test the endpoint**
 
 ```bash
-ssh mfirdaus@192.168.1.12 "curl -s http://localhost:8080/health"
+ssh mfirdaus@<server-lan-ip> "curl -s http://localhost:8080/health"
 ```
 
 Expected: `{"status": "ok"}` or similar health response.
@@ -894,7 +894,7 @@ import time
 from urllib import request, error
 
 # Point to server — use Tailscale IP or LAN IP
-SERVER = "192.168.1.12"
+SERVER = "<server-lan-ip>"
 PORT = 8080
 URL = f"http://{SERVER}:{PORT}/v1/chat/completions"
 
@@ -962,7 +962,7 @@ import sys
 import time
 from urllib import request, error
 
-SERVER = "192.168.1.12"
+SERVER = "<server-lan-ip>"
 PORT = 8080
 URL = f"http://{SERVER}:{PORT}/v1/chat/completions"
 
@@ -1051,7 +1051,7 @@ Target: >15 tok/s for usable interactive chat, >25 tok/s is good for 14B on dual
 
 In a separate terminal or before running:
 ```bash
-ssh mfirdaus@192.168.1.12 "watch -n1 rocm-smi"
+ssh mfirdaus@<server-lan-ip> "watch -n1 rocm-smi"
 ```
 
 Expected: Both GPUs show utilization during inference, VRAM ~4-5 GB used per GPU.
@@ -1286,7 +1286,7 @@ python3 scripts/benchmark.py
 
 ### Server
 ```bash
-ssh mfirdaus@192.168.1.12
+ssh mfirdaus@<server-lan-ip>
 systemctl status llama-server
 tail -f /opt/llm/logs/llama-server.log
 ```

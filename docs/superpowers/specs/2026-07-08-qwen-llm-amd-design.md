@@ -17,12 +17,12 @@ across 2x RX 6700 XT GPUs, exposed as an OpenAI-compatible HTTP API.
 | GPU       | 2x AMD Radeon RX 6700/6700 XT (Navi 22, gfx1031, ~12GB VRAM each) |
 | RAM       | 30 GiB available |
 | OS        | Ubuntu 26.04 LTS (Resolute Raccoon), kernel 7.0 |
-| Network   | LAN 192.168.1.12, Tailscale mesh |
+| Network   | LAN <server-lan-ip>, Tailscale mesh |
 
 ## Architecture
 
 ```
-Hermes AI Server                  AMD GPU Server (192.168.1.12)
+Hermes AI Server                  AMD GPU Server (<server-lan-ip>)
 ┌──────────────────┐              ┌─────────────────────────────┐
 │ Tier 0: Qwen 14B │──Tailscale──▶│ Container: llama-server      │
 │ Tier 1-3: Cloud  │  :8080       │ ROCm backend, HIPBLAS        │

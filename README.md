@@ -31,7 +31,7 @@ python3 scripts/benchmark.py
 OpenAI-compatible endpoint:
 
 ```bash
-curl http://192.168.1.12:8080/v1/chat/completions \
+curl http://<server-lan-ip>:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Hello!"}],"max_tokens":100}'
 ```

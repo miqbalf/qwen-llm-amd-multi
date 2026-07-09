@@ -6,7 +6,7 @@ import sys
 import time
 from urllib import request, error
 
-SERVER = "192.168.1.12"
+SERVER = "<server-lan-ip>"
 PORT = 8080
 URL = f"http://{SERVER}:{PORT}/v1/chat/completions"
 
