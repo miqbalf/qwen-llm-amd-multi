@@ -36,7 +36,7 @@ services:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
 
     command: >
-      --model /opt/llm/models/DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.gguf
+      --model /opt/llm/models/Qwen_Qwen3-14B-Q5_K_M.gguf
       --host 0.0.0.0
       --port 8081
       --n-gpu-layers 99

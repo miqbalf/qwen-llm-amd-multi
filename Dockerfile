@@ -36,15 +36,15 @@ ENV LD_LIBRARY_PATH=/opt/rocm/lib:/opt/llm/bin
 EXPOSE 8081
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -sf http://localhost:8080/health || exit 1
+    CMD curl -sf http://localhost:8081/health || exit 1
 
 ENTRYPOINT ["/opt/llm/bin/llama-server"]
-CMD ["--model", "/opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf", \
+CMD ["--model", "/opt/llm/models/Qwen_Qwen3-14B-Q5_K_M.gguf", \
      "--host", "0.0.0.0", \
      "--port", "8081", \
      "--n-gpu-layers", "99", \
      "--tensor-split", "12,12", \
-     "--ctx-size", "8192", \
+     "--ctx-size", "32768", \
      "--threads", "6", \
      "--batch-size", "512", \
      "--flash-attn", "off", \
