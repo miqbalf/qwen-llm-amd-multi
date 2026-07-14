@@ -78,8 +78,18 @@ rm -rf "$PROJECT_DIR/build-bin" "$PROJECT_DIR/rocm-libs" "$PROJECT_DIR/rocm-sysl
 echo ""
 echo "==> Done. Image: $IMAGE"
 echo ""
-echo "To push:"
-echo "  docker push $IMAGE"
+if [[ "${PUSH:-0}" == "1" ]]; then
+    echo "==> Pushing to registry..."
+    docker push "$IMAGE"
+    echo "==> Push complete."
+else
+    echo "To push:"
+    echo "  PUSH=1 $0 $TAG"
+    echo "  # or: docker push $IMAGE"
+    echo ""
+    echo "Requires: echo \$GITHUB_PAT | docker login ghcr.io -u miqbalf --password-stdin"
+    echo "  (PAT needs write:packages scope)"
+fi
 echo ""
 echo "To test locally:"
 echo "  docker run --rm --device /dev/dri --device /dev/kfd \\"
