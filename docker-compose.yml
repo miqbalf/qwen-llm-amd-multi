@@ -36,7 +36,7 @@ services:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
 
     command: >
-      --model /opt/llm/models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
+      --model /opt/llm/models/Qwen2.5-14B-Instruct-Uncensored-Q4_K_M.gguf
       --host 0.0.0.0
       --port 8081
       --n-gpu-layers 99
