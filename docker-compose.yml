@@ -46,4 +46,4 @@ services:
       --batch-size 512
       --flash-attn off
       --metrics
-      --parallel 2
+      --parallel 1
