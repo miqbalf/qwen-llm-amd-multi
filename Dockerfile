@@ -48,4 +48,5 @@ CMD ["--model", "/opt/llm/models/Qwen2.5-14B-Instruct-Uncensored-Q4_K_M.gguf", \
      "--threads", "6", \
      "--batch-size", "512", \
      "--flash-attn", "off", \
-     "--metrics"]
+     "--metrics", \
+     "--parallel", "2"]
