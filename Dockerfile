@@ -44,7 +44,7 @@ CMD ["--model", "/opt/llm/models/Qwen2.5-14B-Instruct-Uncensored-Q4_K_M.gguf", \
      "--port", "8081", \
      "--n-gpu-layers", "99", \
      "--tensor-split", "12,12", \
-     "--ctx-size", "8192", \
+     "--ctx-size", "16384", \
      "--threads", "6", \
      "--batch-size", "512", \
      "--flash-attn", "off", \

@@ -41,7 +41,7 @@ services:
       --port 8081
       --n-gpu-layers 99
       --tensor-split 12,12
-      --ctx-size 8192
+      --ctx-size 16384
       --threads 6
       --batch-size 512
       --flash-attn off
