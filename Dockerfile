@@ -39,7 +39,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -sf http://localhost:8081/health || exit 1
 
 ENTRYPOINT ["/opt/llm/bin/llama-server"]
-CMD ["--model", "/opt/llm/models/Qwen2.5-14B-Instruct-Uncensored-Q4_K_M.gguf", \
+CMD ["--model", "/opt/llm/models/Qwen3-14B-Uncensored.Q4_K_M.gguf", \
      "--host", "0.0.0.0", \
      "--port", "8081", \
      "--n-gpu-layers", "99", \
