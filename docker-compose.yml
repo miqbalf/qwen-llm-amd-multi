@@ -19,6 +19,7 @@ services:
     volumes:
       - /opt/llm/models:/opt/llm/models:ro
       - /opt/llm/logs:/opt/llm/logs
+      - /mnt/SSD_DATA/image-video-gen/run:/mnt/SSD_DATA/image-video-gen/run
 
     devices:
       - /dev/dri:/dev/dri
@@ -32,14 +33,16 @@ services:
       - seccomp:unconfined
 
     environment:
-      - HIP_VISIBLE_DEVICES=1
+      - HIP_VISIBLE_DEVICES=0,1
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - LLM_PROFILE_PATH=/mnt/SSD_DATA/image-video-gen/run/llm_profile
 
     command: >
       --model /opt/llm/models/Qwen3-14B-Uncensored.Q4_K_M.gguf
       --host 0.0.0.0
       --port 8081
       --n-gpu-layers 99
+      --tensor-split 12,12
       --ctx-size 16384
       --threads 6
       --batch-size 512
