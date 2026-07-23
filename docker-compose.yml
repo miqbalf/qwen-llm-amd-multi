@@ -36,9 +36,16 @@ services:
       - HIP_VISIBLE_DEVICES=0,1
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
       - LLM_PROFILE_PATH=/mnt/SSD_DATA/image-video-gen/run/llm_profile
+      # 8B fits ONE 12GB GPU fully — keep all layers on GPU in single mode
+      # (no CPU offload needed, unlike the 14B). qwen owns GPU 1, ComfyUI GPU 0.
+      - LLM_SINGLE_NGL=99
 
+    # Josiefied-Qwen3-8B (abliterated) — ~5GB, runs fully on one 12GB GPU at
+    # full 16384 context. In single-GPU mode the entrypoint strips
+    # --tensor-split and pins GPU 1. --tensor-split below only applies if the
+    # profile is ever set to "dual" (not used in the one-GPU-each layout).
     command: >
-      --model /opt/llm/models/Qwen3-14B-Uncensored.Q4_K_M.gguf
+      --model /opt/llm/models/Josiefied-Qwen3-8B-abliterated-v1.Q4_K_M.gguf
       --host 0.0.0.0
       --port 8081
       --n-gpu-layers 99
